@@ -1,11 +1,11 @@
 ---
-sort: 18
-weight: 18
+sort: 21
+weight: 21
 title: Release process guidance
 menu:
   docs:
     parent: "victoriametrics"
-    weight: 18
+    weight: 21
 aliases:
 - /Release-Guide.html
 ---
@@ -48,18 +48,22 @@ Bumping the limits may significantly improve build speed.
 
 ## Release version and Docker images
 
-1. Make sure that the release commits have no security issues.
-1. Document all the changes for new release in [CHANGELOG.md](https://github.com/VictoriaMetrics/VictoriaMetrics/blob/master/docs/CHANGELOG.md) and update version if needed in [SECURITY.md](https://github.com/VictoriaMetrics/VictoriaMetrics/blob/master/docs/SECURITY.md)
+1. Make sure all the changes are documented in [CHANGELOG.md](https://github.com/VictoriaMetrics/VictoriaMetrics/blob/master/docs/CHANGELOG.md).
+   Ideally, every change must be documented in the commit with the change. Alternatively, the change must be documented immediately
+   after the commit, which adds the change.
+1. Make sure all the changes are synced between `master`, `cluster`, `enterprise-single-node` and `enteprise-cluster` branches.
+   Changes in these branches must be synced immediately after they are commited in at least a single branch.
+1. Make sure that the release branches have no security issues.
+1. Update release versions if needed in [SECURITY.md](https://github.com/VictoriaMetrics/VictoriaMetrics/blob/master/SECURITY.md).
 1. Add `(available starting from v1.xx.y)` line to feature docs introduced in the upcoming release.
 1. Cut new version in [CHANGELOG.md](https://github.com/VictoriaMetrics/VictoriaMetrics/blob/master/docs/CHANGELOG.md)
-and make it merged. See example in this [commit](https://github.com/VictoriaMetrics/VictoriaMetrics/commit/b771152039d23b5ccd637a23ea748bc44a9511a7).
-1. Cherry-pick all changes from `master` to `cluster` branch, and to ENT branches `enterprise-single-node`, `enterprise-cluster`.
+   and make it merged. See example in this [commit](https://github.com/VictoriaMetrics/VictoriaMetrics/commit/b771152039d23b5ccd637a23ea748bc44a9511a7).
 1. Cherry-pick bug fixes relevant for LTS releases.
 1. Make sure you get all changes fetched `git fetch --all`.
 1. Create the following release tags:
    * `git tag -s v1.xx.y` in `master` branch
    * `git tag -s v1.xx.y-cluster` in `cluster` branch
-   * `git tag -s v1.xx.y-enterprise` in `enterprise` branch
+   * `git tag -s v1.xx.y-enterprise` in `enterprise-single-node` branch
    * `git tag -s v1.xx.y-enterprise-cluster` in `enterprise-cluster` branch
 1. Run `TAG=v1.xx.y make publish-release`. This command performs the following tasks:
    a) Build and package binaries in `*.tar.gz` release archives with the corresponding `_checksums.txt` files inside `bin` directory.
@@ -123,6 +127,27 @@ and make it merged. See example in this [commit](https://github.com/VictoriaMetr
 * Publish message in Telegram at <https://t.me/VictoriaMetrics_en> and <https://t.me/VictoriaMetrics_ru1>
 * Publish message in Google Groups at <https://groups.google.com/forum/#!forum/victorametrics-users>
 
+## Operator
+
+The operator repository [https://github.com/VictoriaMetrics/operator/](https://github.com/VictoriaMetrics/operator/)
+
+### Bump the version of images
+
+- Bump `Version` field in [file `internal/config/config.go`](https://github.com/VictoriaMetrics/operator/blob/master/internal/config/config.go) with new release version for:
+  - `vmalert` in `BaseOperatorConf.VMAlertDefault.Version`,
+  - `vmagent` in `BaseOperatorConf.VMAgentDefault.Version`,
+  - `vmsingle` in `BaseOperatorConf.VMSingleDefault.Version`,
+  - `vmselect` in `BaseOperatorConf.VMClusterDefault.VMSelectDefault.Version`,
+  - `vmstorage` in `BaseOperatorConf.VMClusterDefault.VMStorageDefault.Version`,
+  - `vminsert` in `BaseOperatorConf.VMClusterDefault.VMInsertDefault.Version`,
+  - `vmbackupmanager` in `BaseOperatorConf.VMBackup.Version` (should be enterprise version),
+  - `vmauth` in `BaseOperatorConf.VMAuthDefault.Version`.
+- Run `make operator-conf`.
+- Rename "Next release" section in `CHANGELOG.md` to the *new release version* and create new empty "Next release" section.
+- Commit and push changes to `master`.
+- Create and push a new tag with the *new release version*.
+- Create github release from this tag with "Release notes" from `CHANGELOG` for this version in description.
+
 ## Helm Charts
 
 The helm chart repository [https://github.com/VictoriaMetrics/helm-charts/](https://github.com/VictoriaMetrics/helm-charts/)
@@ -131,7 +156,9 @@ The helm chart repository [https://github.com/VictoriaMetrics/helm-charts/](http
 
 Bump `tag` field in `values.yaml` with new release version.
 Bump `appVersion` field in `Chart.yaml` with new release version.
-Bump `version` field in `Chart.yaml` with incremental semver version.
+Add new line to "Next release" section in `CHANGELOG.md` about version update (the line must always start with "`-`"). Do **NOT** change headers in `CHANGELOG.md`.
+Bump `version` field in `Chart.yaml` with incremental semver version (based on the `CHANGELOG.md` analysis). 
+
 Do these updates to the following charts:
 
 1. Update `vmagent` chart version in [`values.yaml`](https://github.com/VictoriaMetrics/helm-charts/blob/master/charts/victoria-metrics-agent/values.yaml) and [`Chart.yaml`](https://github.com/VictoriaMetrics/helm-charts/blob/master/charts/victoria-metrics-agent/Chart.yaml) 
@@ -144,11 +171,10 @@ Do these updates to the following charts:
 
 Once updated, run the following commands:
 
-1. Run `make gen-docs`
-1. Run `make package` that creates or updates zip file with the packed chart
-1. Run `make merge`. It creates or updates metadata for charts in index.yaml
-1. Push changes to master. `master` is a source of truth
-1. Push the same changes to `gh-pages` branch
+1. Commit and push changes to `master`.
+1. Run "Release" action on Github:
+   ![image](Release-Guide_helm-release.png)
+1. Merge new PRs *"Automatic update CHANGELOGs and READMEs"* and *"Synchronize docs"* after pipelines are complete.
 
 ## Ansible Roles 
 

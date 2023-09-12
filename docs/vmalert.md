@@ -123,16 +123,23 @@ name: <string>
 # How often rules in the group are evaluated.
 [ interval: <duration> | default = -evaluationInterval flag ]
 
+# Optional
+# Group will be evaluated at the exact offset in the range of [0...interval].
+# E.g. for Group with `interval: 1h` and `eval_offset: 5m` the evaluation will
+# start at 5th minute of the hour. See https://github.com/VictoriaMetrics/VictoriaMetrics/issues/3409
+# `eval_offset` can't be bigger than `interval`.
+[ eval_offset: <duration> ]
+
 # Limit the number of alerts an alerting rule and series a recording
 # rule can produce. 0 is no limit.
 [ limit: <int> | default = 0 ]
 
 # How many rules execute at once within a group. Increasing concurrency may speed
-# up round execution speed.
+# up group's evaluation duration (exposed via `vmalert_iteration_duration_seconds` metric).
 [ concurrency: <integer> | default = 1 ]
 
 # Optional type for expressions inside the rules. Supported values: "graphite" and "prometheus".
-# By default "prometheus" type is used.
+# By default, "prometheus" type is used.
 [ type: <string> ]
 
 # Optional list of HTTP URL parameters
@@ -530,7 +537,7 @@ Alertmanagers.
 
 To avoid recording rules results and alerts state duplication in VictoriaMetrics server
 don't forget to configure [deduplication](https://docs.victoriametrics.com/Single-server-VictoriaMetrics.html#deduplication).
-The recommended value for `-dedup.minScrapeInterval` must be greater or equal to vmalert `evaluation_interval`.
+The recommended value for `-dedup.minScrapeInterval` must be multiple of vmalert's `evaluation_interval`.
 If you observe inconsistent or "jumping" values in series produced by vmalert, try disabling `-datasource.queryTimeAlignment`
 command line flag. Because of alignment, two or more vmalert HA pairs will produce results with the same timestamps.
 But due of backfilling (data delivered to the datasource with some delay) values of such results may differ,
@@ -994,7 +1001,7 @@ The shortlist of configuration flags is the following:
   -envflag.prefix string
      Prefix for environment variables if -envflag.enable is set
   -eula
-     By specifying this flag, you confirm that you have an enterprise license and accept the EULA https://victoriametrics.com/assets/VM_EULA.pdf . This flag is available only in VictoriaMetrics enterprise. See https://docs.victoriametrics.com/enterprise.html
+     Deprecated, please use -license or -licenseFile flags instead. By specifying this flag, you confirm that you have an enterprise license and accept the ESA https://victoriametrics.com/legal/esa/ . This flag is available only in VictoriaMetrics enterprise. See https://docs.victoriametrics.com/enterprise.html
   -evaluationInterval duration
      How often to evaluate the rules (default 1m0s)
   -external.alert.source string
@@ -1034,6 +1041,12 @@ The shortlist of configuration flags is the following:
      Whether to disable caches for interned strings. This may reduce memory usage at the cost of higher CPU usage. See https://en.wikipedia.org/wiki/String_interning . See also -internStringCacheExpireDuration and -internStringMaxLen
   -internStringMaxLen int
      The maximum length for strings to intern. A lower limit may save memory at the cost of higher CPU usage. See https://en.wikipedia.org/wiki/String_interning . See also -internStringDisableCache and -internStringCacheExpireDuration (default 500)
+  -license string
+     See https://victoriametrics.com/products/enterprise/ for trial license. This flag is available only in VictoriaMetrics enterprise. See https://docs.victoriametrics.com/enterprise.html
+  -license.forceOffline
+     See https://victoriametrics.com/products/enterprise/ for trial license. This flag is available only in VictoriaMetrics enterprise. See https://docs.victoriametrics.com/enterprise.html
+  -licenseFile string
+     See https://victoriametrics.com/products/enterprise/ for trial license. This flag is available only in VictoriaMetrics enterprise. See https://docs.victoriametrics.com/enterprise.html
   -loggerDisableTimestamps
      Whether to disable writing timestamps in logs
   -loggerErrorsPerSecondLimit int
@@ -1505,7 +1518,7 @@ spec:
 
 ### Development build
 
-1. [Install Go](https://golang.org/doc/install). The minimum supported version is Go 1.19.
+1. [Install Go](https://golang.org/doc/install). The minimum supported version is Go 1.20.
 1. Run `make vmalert` from the root folder of [the repository](https://github.com/VictoriaMetrics/VictoriaMetrics).
    It builds `vmalert` binary and puts it into the `bin` folder.
 
@@ -1521,7 +1534,7 @@ ARM build may run on Raspberry Pi or on [energy-efficient ARM servers](https://b
 
 ### Development ARM build
 
-1. [Install Go](https://golang.org/doc/install). The minimum supported version is Go 1.19.
+1. [Install Go](https://golang.org/doc/install). The minimum supported version is Go 1.20.
 1. Run `make vmalert-linux-arm` or `make vmalert-linux-arm64` from the root folder of [the repository](https://github.com/VictoriaMetrics/VictoriaMetrics).
    It builds `vmalert-linux-arm` or `vmalert-linux-arm64` binary respectively and puts it into the `bin` folder.
 

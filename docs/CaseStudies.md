@@ -30,7 +30,7 @@ where you can chat with VictoriaMetrics users to get additional references, revi
   - [Groove X](#groove-x)
   - [Idealo.de](#idealode)
   - [MHI Vestas Offshore Wind](#mhi-vestas-offshore-wind)
-  - [Naver][#naver]
+  - [Naver](#naver)
   - [Percona](#percona)
   - [Razorpay](#razorpay)
   - [Roblox](#roblox)
@@ -336,36 +336,7 @@ Numbers:
 
 [Grammarly](https://www.grammarly.com/) provides digital writing assistant that helps 30 million people and 30 thousand teams write more clearly and effectively every day. In building a product that scales across multiple platforms and devices, Grammarly works to empower users whenever and wherever they communicate.
 
-> Maintenance and scaling for our previous on-premise monitoring system was hard and required a lot of effort from our side. The previous system was not optimized for storing frequently changing metrics (moderate [churn rate](https://docs.victoriametrics.com/FAQ.html#what-is-high-churn-rate) was a concern). The costs of the previous solution were not optimal.
-
-> We evaluated various cloud-based and on-premise monitoring solutions: Sumo Logic, DataDog, SignalFX, Amazon CloudWatch, Prometheus, M3DB, Thanos, Graphite, etc. PoC results were sufficient for us to move forward with VictoriaMetrics due to the following reasons:
-
-- High performance
-- Support for Graphite and OpenMetrics data ingestion types
-- Good documentation and easy bootstrap
-- Responsiveness of VictoriaMetrics support team during research and afterward
-
-> Switching from our previous on-premise monitoring system to VictoriaMetrics allowed reducing infrastructure costs by an order of magnitude while improving DevOps experience and developer experience.
-
-Numbers:
-
-- [Cluster version](https://docs.victoriametrics.com/Cluster-VictoriaMetrics.html) of VictoriaMetrics
-- Active time series: 35M
-- Ingestion rate: 950K new samples per second
-- Total number of datapoints: 44 trillions
-- Churn rate: 27M new time series per day
-- Data size on disk: 23 TB
-- Index size on disk: 700 GB
-- The average datapoint size on disk: 0.5 bytes
-- Query rate:
-  - `/api/v1/query_range`: 350 queries per second
-  - `/api/v1/query`: 24 queries per second
-- Query duration:
-  - 99th percentile: 500 milliseconds
-  - 90th percentile: 70 milliseconds
-  - median: 2 milliseconds
-- CPU usage: 12 CPU cores
-- RAM usage: 250 GB
+See [this blogpost on how Grammarly reduces costs and maintenance burden for their observability solution by 10x after switching to VistoriaMetrics](https://www.grammarly.com/blog/engineering/monitoring-with-victoriametrics/).
 
 ## Groove X
 
@@ -421,19 +392,12 @@ Numbers with current, limited roll out:
 - Data size on disk: 800 GiB
 - Retention period: 3 years
 
-## Naver 
+## Naver
 
-See [our](https://www.navercorp.com/en/) video ["Time Series in the Multiverse of Madness" (in Korean)](https://www.youtube.com/watch?v=OUyXPgVcdw4) about the comparison of Time Series Database, why we have chosen VictoriaMetrics
-We also covered the internals of the VictoriaMetrics data model and Cluster.
-The key areas: 
+[Naver](https://www.navercorp.com/en/) is a global tech platform that enables wide access to advanced technologies for SMEs, creators and partners,
+fueling their greater growth around the world.
 
-* Explanation of the importance and role of Monitoring for NaverCorp
-* History overview of Time Series Databases
-* VictoriaMetrics Data model - read and write paths, index structure, compression and the crucial role of the churn rate
-* Time series in the Multiverse Madness 
-* HA and Fault Tolerance - write without data loss, read for no downtime, management of Multiverse
-
-[Slides](https://deview.kr/data/deview/session/attach/%5B2B4%5DVictoriaMetrics_%E1%84%89%E1%85%B5%E1%84%80%E1%85%A8%E1%84%8B%E1%85%A7%E1%86%AF_%E1%84%83%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%90%E1%85%A5_%E1%84%83%E1%85%A2%E1%84%92%E1%85%A9%E1%86%AB%E1%84%83%E1%85%A9%E1%86%AB%E1%84%8B%E1%85%B4_%E1%84%86%E1%85%A5%E1%86%AF%E1%84%90%E1%85%B5%E1%84%87%E1%85%A5%E1%84%89%E1%85%B3_Kor+Eng.pdf) in English and Korean
+See [this video](https://www.youtube.com/watch?v=OUyXPgVcdw4) and [these slides](https://deview.kr/data/deview/session/attach/%5B2B4%5DVictoriaMetrics_%E1%84%89%E1%85%B5%E1%84%80%E1%85%A8%E1%84%8B%E1%85%A7%E1%86%AF_%E1%84%83%E1%85%A6%E1%84%8B%E1%85%B5%E1%84%90%E1%85%A5_%E1%84%83%E1%85%A2%E1%84%92%E1%85%A9%E1%86%AB%E1%84%83%E1%85%A9%E1%86%AB%E1%84%8B%E1%85%B4_%E1%84%86%E1%85%A5%E1%86%AF%E1%84%90%E1%85%B5%E1%84%87%E1%85%A5%E1%84%89%E1%85%B3_Kor+Eng.pdf) on why and how Naver uses VictoriaMetrics.
 
 ## Percona
 

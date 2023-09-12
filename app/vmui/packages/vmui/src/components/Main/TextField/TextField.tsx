@@ -3,6 +3,7 @@ import classNames from "classnames";
 import { useMemo } from "preact/compat";
 import { useAppState } from "../../../state/common/StateContext";
 import useDeviceDetect from "../../../hooks/useDeviceDetect";
+import TextFieldMessage from "./TextFieldMessage";
 import "./style.scss";
 
 interface TextFieldProps {
@@ -10,6 +11,7 @@ interface TextFieldProps {
   value?: string | number
   type?: HTMLInputTypeAttribute | "textarea"
   error?: string
+  warning?: string
   placeholder?: string
   endIcon?: ReactNode
   startIcon?: ReactNode
@@ -29,12 +31,13 @@ const TextField: FC<TextFieldProps> = ({
   value,
   type = "text",
   error = "",
+  warning = "",
+  helperText = "",
   placeholder,
   endIcon,
   startIcon,
   disabled = false,
   autofocus = false,
-  helperText,
   inputmode = "text",
   onChange,
   onEnter,
@@ -52,6 +55,7 @@ const TextField: FC<TextFieldProps> = ({
   const inputClasses = classNames({
     "vm-text-field__input": true,
     "vm-text-field__input_error": error,
+    "vm-text-field__input_warning": !error && warning,
     "vm-text-field__input_icon-start": startIcon,
     "vm-text-field__input_disabled": disabled,
     "vm-text-field__input_textarea": type === "textarea",
@@ -132,17 +136,11 @@ const TextField: FC<TextFieldProps> = ({
       )
     }
     {label && <span className="vm-text-field__label">{label}</span>}
-    <span
-      className="vm-text-field__error"
-      data-show={!!error}
-    >
-      {error}
-    </span>
-    {helperText && !error && (
-      <span className="vm-text-field__helper-text">
-        {helperText}
-      </span>
-    )}
+    <TextFieldMessage
+      error={error}
+      warning={warning}
+      info={helperText}
+    />
   </label>
   ;
 };

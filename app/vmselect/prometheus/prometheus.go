@@ -3,6 +3,7 @@ package prometheus
 import (
 	"flag"
 	"fmt"
+	"github.com/VictoriaMetrics/metricsql"
 	"math"
 	"net/http"
 	"runtime"
@@ -71,6 +72,23 @@ func ExpandWithExprs(w http.ResponseWriter, r *http.Request) {
 		WriteExpandWithExprsJSONResponse(bw, query)
 	} else {
 		WriteExpandWithExprsResponse(bw, query)
+	}
+	_ = bw.Flush()
+}
+
+// PrettifyQuery handles the request /prettify-query
+func PrettifyQuery(w http.ResponseWriter, r *http.Request) {
+	query := r.FormValue("query")
+	bw := bufferedwriter.Get(w)
+	defer bufferedwriter.Put(bw)
+	w.Header().Set("Content-Type", "application/json")
+	httpserver.EnableCORS(w, r)
+
+	prettyQuery, err := metricsql.Prettify(query)
+	if err != nil {
+		fmt.Fprintf(bw, `{"status": "error", "msg": %q}`, err)
+	} else {
+		fmt.Fprintf(bw, `{"status": "success", "query": %q}`, prettyQuery)
 	}
 	_ = bw.Flush()
 }
@@ -649,10 +667,7 @@ func SeriesHandler(qt *querytracer.Tracer, startTime time.Time, w http.ResponseW
 		qt.Donef("start=%d, end=%d", cp.start, cp.end)
 	}
 	WriteSeriesResponse(bw, metricNames, qt, qtDone)
-	if err := bw.Flush(); err != nil {
-		return err
-	}
-	return nil
+	return bw.Flush()
 }
 
 var seriesDuration = metrics.NewSummary(`vm_request_duration_seconds{path="/api/v1/series"}`)
@@ -694,7 +709,10 @@ func QueryHandler(qt *querytracer.Tracer, startTime time.Time, w http.ResponseWr
 		return err
 	}
 	if childQuery, windowExpr, offsetExpr := promql.IsMetricSelectorWithRollup(query); childQuery != "" {
-		window := windowExpr.Duration(step)
+		window, err := windowExpr.NonNegativeDuration(step)
+		if err != nil {
+			return fmt.Errorf("cannot parse lookbehind window in square brackets at %s: %w", query, err)
+		}
 		offset := offsetExpr.Duration(step)
 		start -= offset
 		end := start
@@ -723,11 +741,17 @@ func QueryHandler(qt *querytracer.Tracer, startTime time.Time, w http.ResponseWr
 		return nil
 	}
 	if childQuery, windowExpr, stepExpr, offsetExpr := promql.IsRollup(query); childQuery != "" {
-		newStep := stepExpr.Duration(step)
+		newStep, err := stepExpr.NonNegativeDuration(step)
+		if err != nil {
+			return fmt.Errorf("cannot parse step in square brackets at %s: %w", query, err)
+		}
 		if newStep > 0 {
 			step = newStep
 		}
-		window := windowExpr.Duration(step)
+		window, err := windowExpr.NonNegativeDuration(step)
+		if err != nil {
+			return fmt.Errorf("cannot parse lookbehind window in square brackets at %s: %w", query, err)
+		}
 		offset := offsetExpr.Duration(step)
 		start -= offset
 		end := start
